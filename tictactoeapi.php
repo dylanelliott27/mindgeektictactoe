@@ -149,6 +149,11 @@ class TicTacToeReqHandler {
     }
 
     public function start_game() {
+        if( isset($_SESSION['game_data']) ) {
+            // Just act as if game is being reset for now
+            unset($_SESSION['game_data']);
+        }
+
         $board_instance = new Board();
         $board_instance->setup_players();
         echo json_encode(['boardHtml' => $board_instance->craft_table_html(), 'boardState' => json_decode($board_instance->get_board_state_json())]);
@@ -170,7 +175,7 @@ class TicTacToeReqHandler {
         $board_instance = $_SESSION['game_data'];
 
         if( !$board_instance->is_valid_move() ) {
-            echo ['error' => 'Invalid move'];
+            echo json_encode(['error' => 'Invalid move']);
             die();
         }
 
@@ -180,12 +185,14 @@ class TicTacToeReqHandler {
             $json_response = json_decode($board_instance->get_board_state_json());
             $json_response->win = true;
             echo json_encode($json_response);
+            unset($_SESSION['game_data']);
         }
 
         else if( $board_instance->has_tie() ) {
             $json_response = json_decode($board_instance->get_board_state_json());
             $json_response->win = 'tie';
             echo json_encode($json_response);
+            unset($_SESSION['game_data']);
         }
         else {
             $board_instance->update_current_player();

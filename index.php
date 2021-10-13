@@ -1,3 +1,4 @@
+<?php session_start(); ?>
 <!doctype html>
 <html lang="en">
 <head>
@@ -5,33 +6,83 @@
     <meta name="viewport"
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Document</title>
+    <title>Tic Tac Toe!</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
-        /*.cell{
-            border: 1px solid red;
-            width: 33%;
-            height: 150px;
-            float: left;
-        } */
+        body{
+            background-color: black;
+        }
+        *{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        .ui{
+            font-family: 'poppins';
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100vh;
+            text-align: center;
+            padding: 0 20px;
+            color: white;
+        }
+        .current-player-text{
+            font-family: 'poppins';
+        }
         td{
             border: 1px solid red;
             height: 150px;
             width: 150px;
         }
+        .options{
+            margin-top: 40px;
+        }
+
+        .one-player-btn{
+            padding: 10px 50px;
+            margin-right: 10px;
+            background-color: transparent;
+            box-shadow: 0 0 0px #03c9d3, 0 0 2px #03c9d3, 0 0 14px #03c9d3, 0 0 0px #03c9d3;
+            border: 1px solid white;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .two-player-btn{
+            padding: 10px 50px;
+            margin-left: 10px;
+            color: white;
+            font-weight: bold;
+            background-color: transparent;
+            box-shadow: 0 0 0px #e92020, 0 0 2px #e92020, 0 0 14px #e92020, 0 0 0px #e92020;
+            border: 1px solid white;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
     </style>
 </head>
 <body>
-    <div class="options">
-        <button data-player-choice="1">1player</button>
-        <button data-player-choice="2">2player</button>
-    </div>
-    <h1 class="currentPlayerText"></h1>
-    <table class="game-table">
+    <section class="ui">
+        <h1>Welcome to my Mindgeek 2021 coding challenge!</h1>
+        <p>By: Dylan Elliott</p>
+        <div class="options">
+            <button class="one-player-btn" data-player-choice="1">ONE PLAYER</button>
+            <button class="two-player-btn" data-player-choice="2">TWO PLAYER</button>
+        </div>
+        <h1 class="current-player-text"></h1>
+        <table class="game-table">
+    </section>
 
     </table>
     <script>
-
-        const optionContainer = document.querySelector('.options').addEventListener('click', initGame);
+        const optionContainer = document.querySelector('.options');
+        optionContainer.addEventListener('click', initGame);
 
         function initGame(e) {
             if( ! e.target.hasAttribute('data-player-choice') ){
@@ -39,8 +90,8 @@
             }
 
             const playerCount = e.target.getAttribute('data-player-choice');
+            optionContainer.style.display = "none";
 
-            //new Board(playerCount);
             HTTPHelper.get('start_game')
             .then(startGameData => {new TicTacToeGame(startGameData); console.log(startGameData)})
             .catch(error => console.error(error))
@@ -70,8 +121,6 @@
 
         function TicTacToeGame({boardHtml, boardState}) {
             this.gameState = ["", "", "", "", "", "", "", "", ""];
-            //this.players = [new Player(0, 'x'), new Player(1, 'o')];
-            //this.currentPlayer = this.players[0];
             this.winner = "";
             this.renderBoard(boardHtml);
 
@@ -79,7 +128,7 @@
             this.boardCells = document.querySelectorAll('.cell');
             this.boardListenerCallback = this.handleBoardClick.bind(this);
             this.boardRef.addEventListener('click', this.boardListenerCallback);
-            this.headingRef = document.querySelector('.currentPlayerText');
+            this.headingRef = document.querySelector('.current-player-text');
             this.updateCurrentPlayerHeading(boardState);
         }
 
@@ -109,7 +158,7 @@
 
             HTTPHelper.post(postInfo).then(res => {
                 if( 'error' in res ) { // Invalid move, user modified gameState array?
-                    console.warn("Invalid move request");
+                    console.warn("Invalid move request" + res.error);
                     return;
                 }
 
@@ -121,25 +170,6 @@
             if( invalidMove ) {
                 return;
             }
-
-           /* this.gameState[cellIdx] = this.currentPlayer.getMarker();
-
-            if( this.currentPlayer.getMarker() == 'x' ) {
-                e.target.style.backgroundColor = "red";
-            }
-            else{
-                e.target.style.backgroundColor = "blue";*/
-            //}
-
-            /*if( this.isGameFinished() ) {
-                this.handleGameOver();
-                return;
-            }*/
-
-            //this.switchTurns();
-        }
-
-        TicTacToeGame.prototype.updateState = function(data) {
 
         }
 
@@ -174,184 +204,6 @@
 
         TicTacToeGame.prototype.updateCurrentPlayerHeading = function(data) {
             this.headingRef.innerText = data.current_player.name;
-        }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        function Board(playerCount) {
-            //this.winningCombinations = [[0,1,2], [3,4,5], [6,7,8], [0,3,6], [1,4,7], [2,5,8], [0,4,8],
-                //[6,4,2] ];
-            this.cellNodeArray = Array.from(document.querySelectorAll('.cell'));
-            this.boardRef = document.querySelector('table');
-            this.currentPlayerHeading = document.querySelector('.currentPlayerText');
-            //this.players = [];
-            this.gameState = ["", "", "", "", "", "", "", "", ""];
-            this.currentPlayer = 0;
-            this.winner = "";
-
-            this.cleanBoard();
-            //this.initPlayers(playerCount);
-
-            this.boardListenerRef = this.handleBoardClick.bind(this);
-            this.boardRef.addEventListener('click', this.boardListenerRef);
-
-        }
-
-        /*Board.prototype.initPlayers = function(playerCount) {
-            let markerOptions = ['x', 'o'];
-
-            for(let i = 0; i < playerCount; i++) {
-                this.players.push(new Player(i, markerOptions[i]));
-            }
-
-            this.currentPlayer = this.players[0];
-
-            this.updateCurrentPlayerHeading();
-        }*/
-
-        Board.prototype.updateCurrentPlayerHeading = function(){
-            this.currentPlayerHeading.innerText = this.currentPlayer.getName();
-        }
-
-        Board.prototype.handleBoardClick = function(e) {
-            if(! e.target.hasAttribute('data-cell') ) {
-                return;
-            }
-
-            let cellIdx = e.target.getAttribute('data-cell');
-
-            if(this.gameState[cellIdx] !== "") {
-                // if cell already filled.
-                return;
-            }
-
-            this.gameState[cellIdx] = this.currentPlayer.getMarker();
-
-            if( this.currentPlayer.getMarker() == 'x' ) {
-                e.target.style.backgroundColor = "red";
-            }
-            else{
-                e.target.style.backgroundColor = "blue";
-            }
-
-            if( this.isGameFinished() ) {
-                this.handleGameOver();
-                return;
-            }
-
-            this.switchTurns();
-        }
-
-        Board.prototype.handleGameOver = function() {
-            if( this.winner !== "tie" ) {
-                this.currentPlayerHeading.innerText = this.winner + " wins!";
-            }
-            else {
-                this.currentPlayerHeading.innerText = "Tie!"
-            }
-            // clean up / reset resources
-            this.boardRef.removeEventListener('click', this.boardListenerRef);
-            this.currentPlayer = 0;
-            this.players = [];
-        }
-
-        Board.prototype.cleanBoard = function() {
-            this.gameState.forEach(cell => cell = '');
-            this.cellNodeArray.forEach(cell => cell.style.backgroundColor = "white");
-        }
-
-        Board.prototype.isGameFinished = function() {
-            for(let i = 0; i < this.winningCombinations.length; i++) {
-                let combinationFirstInt = this.winningCombinations[i][0];
-                let combinationSecondInt = this.winningCombinations[i][1];
-                let combinationThirdInt = this.winningCombinations[i][2];
-
-                if(this.gameState[combinationFirstInt] === this.currentPlayer.getMarker() &&
-                    this.gameState[combinationSecondInt] === this.currentPlayer.getMarker() &&
-                    this.gameState[combinationThirdInt] === this.currentPlayer.getMarker()) {
-                    this.winner = this.currentPlayer.getName();
-                    return true;
-                }
-            }
-
-            if( this.isTie() ) {
-                this.winner = "tie";
-                return true;
-            }
-
-            return false;
-
-        }
-
-        Board.prototype.isTie = function() {
-            return this.gameState.every((cell) => cell != "");
-        }
-
-        Board.prototype.switchTurns = function() {
-            if( this.currentPlayer.getID() == 0 ) {
-                this.currentPlayer = this.players[1];
-            }
-
-            else {
-                this.currentPlayer = this.players[0];
-            }
-
-            this.currentPlayerHeading.innerText = this.currentPlayer.getName();
-
-        }
-
-
-
-        function Player(id, marker) {
-            this.id = id;
-            this.name = "Player: " + id;
-            this.marker = marker;
-        }
-
-        Player.prototype.getName = function() {
-            return this.name;
-        }
-
-        Player.prototype.getID = function() {
-            return this.id;
-        }
-
-        Player.prototype.getMarker = function() {
-            return this.marker;
         }
 
     </script>
