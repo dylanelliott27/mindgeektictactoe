@@ -42,7 +42,7 @@
 
             //new Board(playerCount);
             HTTPHelper.get('start_game')
-            .then(startGameData => new TicTacToeGame(startGameData))
+            .then(startGameData => {new TicTacToeGame(startGameData); console.log(startGameData)})
             .catch(error => console.error(error))
         }
 
@@ -56,13 +56,11 @@
             return response.json();
         }
 
-        HTTPHelper.post = async function(action) {
-            const postInfo = new FormData();
-            postInfo.append('action', action);
+        HTTPHelper.post = async function(bodyData) {
 
             const response = await fetch( './tictactoeapi.php', {
                 method: 'POST',
-                body: postInfo
+                body: bodyData
             });
 
             if( !response.ok ) console.error("Error fetching");
@@ -78,8 +76,11 @@
             this.renderBoard(boardHtml);
 
             this.boardRef = document.querySelector('table');
+            this.boardCells = document.querySelectorAll('.cell');
             this.boardListenerCallback = this.handleBoardClick.bind(this);
             this.boardRef.addEventListener('click', this.boardListenerCallback);
+            this.headingRef = document.querySelector('.currentPlayerText');
+            this.updateCurrentPlayerHeading(boardState);
         }
 
         TicTacToeGame.prototype.renderBoard = function(boardHtml) {
@@ -100,7 +101,26 @@
                 return;
             }
 
-            HTTPHelper.post('handle_move').then(res => console.log(res));
+            let invalidMove = false;
+
+            const postInfo = new FormData();
+            postInfo.append('action', 'handle_move');
+            postInfo.append('requested_cell', cellIdx);
+
+            HTTPHelper.post(postInfo).then(res => {
+                if( 'error' in res ) { // Invalid move, user modified gameState array?
+                    console.warn("Invalid move request");
+                    return;
+                }
+
+                //this.updateState(res);
+                this.hydrateUI(res);
+            })
+            .catch(error => console.error(error))
+
+            if( invalidMove ) {
+                return;
+            }
 
            /* this.gameState[cellIdx] = this.currentPlayer.getMarker();
 
@@ -117,6 +137,28 @@
             }*/
 
             //this.switchTurns();
+        }
+
+        TicTacToeGame.prototype.updateState = function(data) {
+
+        }
+
+        TicTacToeGame.prototype.hydrateUI = function(data) {
+            const colors = {'x' : 'red', 'o' : 'blue'};
+
+            this.boardCells.forEach(cell => {
+                const cellIdx = cell.getAttribute('data-cell');
+                const markerInIdx = data.board_state[cellIdx];
+
+                cell.style.backgroundColor = colors[markerInIdx];
+            })
+
+            this.updateCurrentPlayerHeading(data);
+
+        }
+
+        TicTacToeGame.prototype.updateCurrentPlayerHeading = function(data) {
+            this.headingRef.innerText = data.current_player.name;
         }
 
 

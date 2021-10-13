@@ -6,7 +6,7 @@ class Board {
         $this->winning_combinations = [[0,1,2], [3,4,5], [6,7,8], [0,3,6], [1,4,7], [2,5,8], [0,4,8],
             [6,4,2] ];
         $this->players = [];
-        $this->game_state = ["", "", "", "", "", "", "", "", ""];
+        $this->board_state = ["", "", "", "", "", "", "", "", ""];
         $this->current_player = 0;
         $this->winner = "";
     }
@@ -39,8 +39,40 @@ class Board {
             'current_player' => ['id' => $this->current_player->get_id(),
                 'marker' => $this->current_player->get_marker(),
                 'name' => $this->current_player->get_name()],
-            'game_state' => $this->game_state
+            'board_state' => $this->board_state
         ]);
+    }
+
+    public function is_valid_move() {
+        $requested_cell = $_REQUEST['requested_cell'];
+
+        if( $this->get_board_state()[$requested_cell] != '' ){
+            return false; // Cell is already filled
+        }
+
+        return true;
+    }
+
+    public function get_current_player() {
+        return $this->current_player;
+    }
+
+    public function get_board_state() {
+        return $this->board_state;
+    }
+
+    public function update_current_player() {
+        // Player idx will always be same as array idx, so we can just go by that for now
+        if( $this->current_player->get_id() == 0 ) {
+            $this->current_player = $this->players[1];
+        }
+        else {
+            $this->current_player = $this->players[0];
+        }
+    }
+
+    public function update_board_state() {
+        $this->board_state[$_REQUEST['requested_cell']] = $this->current_player->get_marker();
     }
 }
 
@@ -89,7 +121,7 @@ class TicTacToeReqHandler {
     public function start_game() {
         $board_instance = new Board();
         $board_instance->setup_players();
-        echo json_encode(['boardHtml' => $board_instance->craft_table_html(), 'boardState' => $board_instance->get_board_state_json()]);
+        echo json_encode(['boardHtml' => $board_instance->craft_table_html(), 'boardState' => json_decode($board_instance->get_board_state_json())]);
         $_SESSION['game_data'] = $board_instance;
         die();
     }
@@ -100,10 +132,25 @@ class TicTacToeReqHandler {
     }
 
     public function handle_move() {
+        if( !isset($_REQUEST['requested_cell']) ) {
+            echo ['error' => 'No cell requested'];
+            die();
+        }
+
         $board_instance = $_SESSION['game_data'];
+
+        if( !$board_instance->is_valid_move() ) {
+            echo ['error' => 'Invalid move'];
+            die();
+        }
+
+        $board_instance->update_board_state();
+        $board_instance->update_current_player();
+
         echo $board_instance->get_board_state_json();
         die();
     }
+
 }
 
 $http_handler = new TicTacToeReqHandler();
