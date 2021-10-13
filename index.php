@@ -26,27 +26,8 @@
         <button data-player-choice="2">2player</button>
     </div>
     <h1 class="currentPlayerText"></h1>
-    <!-- <div class="board">
-        <div data-cell="0" class="cell"></div>
-        <div data-cell="1" class="cell"></div>
-        <div data-cell="2" class="cell"></div>
-        <div data-cell="3" class="cell"></div>
-        <div data-cell="4" class="cell"></div>
-        <div data-cell="5" class="cell"></div>
-        <div data-cell="6" class="cell"></div>
-        <div data-cell="7" class="cell"></div>
-        <div data-cell="8" class="cell"></div>
-    </div> !-->
-    <table>
-        <?php $cell_counter = 0; ?>
-        <?php for($i = 0; $i < 3; $i++):?>
-            <tr>
-                <?php for($k = 0; $k < 3; $k++):?>
-                    <td class="cell" data-cell="<?php echo $cell_counter?>"></td>
-                    <?php $cell_counter++ ?>
-                <?php endfor;?>
-            </tr>
-        <?php endfor; ?>
+    <table class="game-table">
+
     </table>
     <script>
 
@@ -60,47 +41,134 @@
             const playerCount = e.target.getAttribute('data-player-choice');
 
             //new Board(playerCount);
-            const helper = new HTTPHelper();
-            helper.get('start_ga')
-            .then(data => console.log(data));
+            HTTPHelper.get('start_game')
+            .then(startGameData => new TicTacToeGame(startGameData))
+            .catch(error => console.error(error))
         }
 
-        function UIHelper() {
-            this.currentPlayerHeading = document.querySelector('.currentPlayerText');
-        }
+        const HTTPHelper = Object.create(Object);
 
-        function HTTPHelper() {
-            this.ajaxUrl = './tictactoeapi';
-        }
-
-        HTTPHelper.prototype.get = async function(action) {
-            const response = await fetch( this.ajaxUrl + "?action=" + action );
+        HTTPHelper.get = async function(action) {
+            const response = await fetch( './tictactoeapi.php' + "?action=" + action );
 
             if( !response.ok ) console.error("Error fetching");
 
             return response.json();
         }
 
-        /*function Board(playerCount) {
-            this.winningCombinations = [[0,1,2], [3,4,5], [6,7,8], [0,3,6], [1,4,7], [2,5,8], [0,4,8],
-                [6,4,2] ];
+        HTTPHelper.post = async function(action) {
+            const response = await fetch( './tictactoeapi.php', {
+                body: JSON.stringify(data)
+            });
+
+            if( !response.ok ) console.error("Error fetching");
+
+            return response.json();
+        }
+
+        function TicTacToeGame({boardHtml}) {
+            this.gameState = ["", "", "", "", "", "", "", "", ""];
+            this.players = [new Player(0, 'x'), new Player(1, 'o')];
+            this.currentPlayer = this.players[0];
+            this.winner = "";
+            this.renderBoard(boardHtml);
+
+            this.boardRef = document.querySelector('table');
+            this.boardListenerCallback = this.handleBoardClick.bind(this);
+            this.boardRef.addEventListener('click', this.boardListenerCallback);
+        }
+
+        TicTacToeGame.prototype.renderBoard = function(boardHtml) {
+            const table = document.querySelector('.game-table');
+
+            table.innerHTML = boardHtml;
+        }
+
+        TicTacToeGame.prototype.handleBoardClick = function(e) {
+            if(! e.target.hasAttribute('data-cell') ) {
+                return;
+            }
+
+            let cellIdx = e.target.getAttribute('data-cell');
+
+            if(this.gameState[cellIdx] !== "") {
+                // if cell already filled.
+                return;
+            }
+
+            this.gameState[cellIdx] = this.currentPlayer.getMarker();
+
+            if( this.currentPlayer.getMarker() == 'x' ) {
+                e.target.style.backgroundColor = "red";
+            }
+            else{
+                e.target.style.backgroundColor = "blue";
+            }
+
+            /*if( this.isGameFinished() ) {
+                this.handleGameOver();
+                return;
+            }*/
+
+            this.switchTurns();
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        function Board(playerCount) {
+            //this.winningCombinations = [[0,1,2], [3,4,5], [6,7,8], [0,3,6], [1,4,7], [2,5,8], [0,4,8],
+                //[6,4,2] ];
             this.cellNodeArray = Array.from(document.querySelectorAll('.cell'));
             this.boardRef = document.querySelector('table');
             this.currentPlayerHeading = document.querySelector('.currentPlayerText');
-            this.players = [];
+            //this.players = [];
             this.gameState = ["", "", "", "", "", "", "", "", ""];
             this.currentPlayer = 0;
             this.winner = "";
 
             this.cleanBoard();
-            this.initPlayers(playerCount);
+            //this.initPlayers(playerCount);
 
             this.boardListenerRef = this.handleBoardClick.bind(this);
             this.boardRef.addEventListener('click', this.boardListenerRef);
 
         }
 
-        Board.prototype.initPlayers = function(playerCount) {
+        /*Board.prototype.initPlayers = function(playerCount) {
             let markerOptions = ['x', 'o'];
 
             for(let i = 0; i < playerCount; i++) {
@@ -110,14 +178,10 @@
             this.currentPlayer = this.players[0];
 
             this.updateCurrentPlayerHeading();
-        }
+        }*/
 
         Board.prototype.updateCurrentPlayerHeading = function(){
             this.currentPlayerHeading.innerText = this.currentPlayer.getName();
-        }
-
-        Board.prototype.markCell = function(cellNode) {
-            console.log(typeof(cellNode));
         }
 
         Board.prototype.handleBoardClick = function(e) {
@@ -225,7 +289,7 @@
 
         Player.prototype.getMarker = function() {
             return this.marker;
-        }*/
+        }
 
     </script>
 </body>
