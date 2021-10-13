@@ -153,8 +153,23 @@
                 cell.style.backgroundColor = colors[markerInIdx];
             })
 
-            this.updateCurrentPlayerHeading(data);
+            if( data.win ) {
+                this.handleWin(data);
+            }
+            else {
+                this.updateCurrentPlayerHeading(data);
+            }
+        }
 
+        TicTacToeGame.prototype.handleWin = function(data) {
+
+            if( data.win == 'tie' ) {
+                this.headingRef.innerText = "Tie!!!!!!";
+            }
+            else {
+                this.headingRef.innerText = data.current_player.name + " wins!!!";
+            }
+            this.boardRef.removeEventListener('click', this.boardListenerCallback);
         }
 
         TicTacToeGame.prototype.updateCurrentPlayerHeading = function(data) {

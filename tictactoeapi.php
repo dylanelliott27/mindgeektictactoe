@@ -53,6 +53,36 @@ class Board {
         return true;
     }
 
+    public function has_winner() {
+        for($i = 0; $i < count($this->winning_combinations); $i++) {
+            $combination_first_int = $this->winning_combinations[$i][0];
+                $combination_second_int = $this->winning_combinations[$i][1];
+                $combination_third_int = $this->winning_combinations[$i][2];
+
+                if($this->board_state[$combination_first_int] === $this->current_player->get_marker() &&
+                    $this->board_state[$combination_second_int] === $this->current_player->get_marker() &&
+                    $this->board_state[$combination_third_int] === $this->current_player->get_marker()) {
+                    $this->winner = $this->current_player->get_name();
+                    return true;
+                }
+            }
+
+            return false;
+    }
+
+    public function has_tie() {
+        foreach( $this->board_state as $cell ) {
+            if($cell == '') {
+                // If a cell is empty, game is still ongoing
+                // has_winner is checked before this. So only two possible options: game ongoing or all cells filled
+                // with no winner
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     public function get_current_player() {
         return $this->current_player;
     }
@@ -145,9 +175,23 @@ class TicTacToeReqHandler {
         }
 
         $board_instance->update_board_state();
-        $board_instance->update_current_player();
 
-        echo $board_instance->get_board_state_json();
+        if( $board_instance->has_winner() ) {
+            $json_response = json_decode($board_instance->get_board_state_json());
+            $json_response->win = true;
+            echo json_encode($json_response);
+        }
+
+        else if( $board_instance->has_tie() ) {
+            $json_response = json_decode($board_instance->get_board_state_json());
+            $json_response->win = 'tie';
+            echo json_encode($json_response);
+        }
+        else {
+            $board_instance->update_current_player();
+            echo $board_instance->get_board_state_json();
+        }
+
         die();
     }
 
