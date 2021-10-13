@@ -57,8 +57,12 @@
         }
 
         HTTPHelper.post = async function(action) {
+            const postInfo = new FormData();
+            postInfo.append('action', action);
+
             const response = await fetch( './tictactoeapi.php', {
-                body: JSON.stringify(data)
+                method: 'POST',
+                body: postInfo
             });
 
             if( !response.ok ) console.error("Error fetching");
@@ -66,10 +70,10 @@
             return response.json();
         }
 
-        function TicTacToeGame({boardHtml}) {
+        function TicTacToeGame({boardHtml, boardState}) {
             this.gameState = ["", "", "", "", "", "", "", "", ""];
-            this.players = [new Player(0, 'x'), new Player(1, 'o')];
-            this.currentPlayer = this.players[0];
+            //this.players = [new Player(0, 'x'), new Player(1, 'o')];
+            //this.currentPlayer = this.players[0];
             this.winner = "";
             this.renderBoard(boardHtml);
 
@@ -92,25 +96,27 @@
             let cellIdx = e.target.getAttribute('data-cell');
 
             if(this.gameState[cellIdx] !== "") {
-                // if cell already filled.
+                // if cell already filled. This gets validated serverside below as well
                 return;
             }
 
-            this.gameState[cellIdx] = this.currentPlayer.getMarker();
+            HTTPHelper.post('handle_move').then(res => console.log(res));
+
+           /* this.gameState[cellIdx] = this.currentPlayer.getMarker();
 
             if( this.currentPlayer.getMarker() == 'x' ) {
                 e.target.style.backgroundColor = "red";
             }
             else{
-                e.target.style.backgroundColor = "blue";
-            }
+                e.target.style.backgroundColor = "blue";*/
+            //}
 
             /*if( this.isGameFinished() ) {
                 this.handleGameOver();
                 return;
             }*/
 
-            this.switchTurns();
+            //this.switchTurns();
         }
 
 
