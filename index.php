@@ -59,7 +59,10 @@
 
             const playerCount = e.target.getAttribute('data-player-choice');
 
-            new Board(playerCount);
+            //new Board(playerCount);
+            const helper = new HTTPHelper();
+            helper.get('start_ga')
+            .then(data => console.log(data));
         }
 
         function UIHelper() {
@@ -70,8 +73,12 @@
             this.ajaxUrl = './tictactoeapi';
         }
 
-        HTTPHelper.prototype.get = function(action) {
+        HTTPHelper.prototype.get = async function(action) {
+            const response = await fetch( this.ajaxUrl + "?action=" + action );
 
+            if( !response.ok ) console.error("Error fetching");
+
+            return response.json();
         }
 
         /*function Board(playerCount) {
