@@ -33,16 +33,38 @@
         .current-player-text{
             font-family: 'poppins';
         }
+        .welcome-message> h1{
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 38px;
+        }
+        .welcome-message > p{
+            font-size: 22px;
+        }
+        .cell{
+            cursor: pointer;
+            transition: background-color .4s ease-in-out;
+        }
         td{
             border: 1px solid red;
             height: 150px;
             width: 150px;
         }
+        .game-table{
+            margin-top: 40px;
+        }
+        .current-player-text{
+            font-size: 38px;
+            text-transform: uppercase;
+        }
         .options{
             margin-top: 40px;
+            font-family: 'poppins';
         }
 
         .one-player-btn{
+            font-family: 'poppins';
+            letter-spacing: 1px;
             padding: 10px 50px;
             margin-right: 10px;
             background-color: transparent;
@@ -51,8 +73,11 @@
             color: white;
             font-weight: bold;
             cursor: pointer;
+            transition: box-shadow 0.2s ease-in-out;
         }
         .two-player-btn{
+            font-family: 'poppins';
+            letter-spacing: 1px;
             padding: 10px 50px;
             margin-left: 10px;
             color: white;
@@ -63,14 +88,24 @@
             color: white;
             font-weight: bold;
             cursor: pointer;
+            transition: box-shadow 0.2s ease-in-out;
+        }
+
+        .one-player-btn:hover{
+            box-shadow: 0 0 5px #03c9d3, 0 0 6px #03c9d3, 0 0 30px #03c9d3, 0 0 0px #03c9d3;
+        }
+        .two-player-btn:hover{
+            box-shadow: 0 0 5px #e92020, 0 0 6px #e92020, 0 0 30px #e92020, 0 0 0px #e92020;
         }
 
     </style>
 </head>
 <body>
     <section class="ui">
-        <h1>Welcome to my Mindgeek 2021 coding challenge!</h1>
-        <p>By: Dylan Elliott</p>
+        <section class="welcome-message">
+            <h1>Welcome to my Mindgeek 2021 coding challenge!</h1>
+            <p>By: Dylan Elliott</p>
+        </section>
         <div class="options">
             <button class="one-player-btn" data-player-choice="1">ONE PLAYER</button>
             <button class="two-player-btn" data-player-choice="2">TWO PLAYER</button>
@@ -82,6 +117,7 @@
     </table>
     <script>
         const optionContainer = document.querySelector('.options');
+        const welcomeMessage = document.querySelector('.welcome-message');
         optionContainer.addEventListener('click', initGame);
 
         function initGame(e) {
@@ -91,6 +127,7 @@
 
             const playerCount = e.target.getAttribute('data-player-choice');
             optionContainer.style.display = "none";
+            welcomeMessage.style.display = "none";
 
             HTTPHelper.get('start_game')
             .then(startGameData => {new TicTacToeGame(startGameData); console.log(startGameData)})
