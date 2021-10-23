@@ -27,9 +27,15 @@ class Board {
         return ob_get_clean();
     }
 
-    public function setup_players() {
-        array_push($this->players, new Player(0, 'x'));
-        array_push($this->players, new Player(1, 'o'));
+    public function setup_players($players) {
+        if($players == 1){
+            array_push($this->players, new Player(0, 'x'));
+            array_push($this->players, new Player(1, 'o', true));
+        }
+        else {
+            array_push($this->players, new Player(0, 'x'));
+            array_push($this->players, new Player(1, 'o'));
+        }
 
         $this->current_player = $this->players[0];
     }
@@ -38,7 +44,8 @@ class Board {
         return json_encode([
             'current_player' => ['id' => $this->current_player->get_id(),
                 'marker' => $this->current_player->get_marker(),
-                'name' => $this->current_player->get_name()],
+                'name' => $this->current_player->get_name(),
+                'bot' => $this->current_player->is_bot()],
             'board_state' => $this->board_state
         ]);
     }
@@ -110,11 +117,13 @@ class Player {
     private $id;
     private $marker;
     private $name;
+    private $bot;
 
-    public function __construct($id, $marker) {
+    public function __construct($id, $marker, $bot = false) {
         $this->id = $id;
         $this->marker = $marker;
         $this->name = "Player " . $id;
+        $this->bot = $bot;
     }
 
     public function get_id() {
@@ -127,6 +136,9 @@ class Player {
 
     public function get_name() {
         return $this->name;
+    }
+    public function is_bot() {
+        return $this->bot;
     }
 }
 
@@ -155,7 +167,7 @@ class TicTacToeReqHandler {
         }
 
         $board_instance = new Board();
-        $board_instance->setup_players();
+        $board_instance->setup_players($_REQUEST['players']);
         echo json_encode(['boardHtml' => $board_instance->craft_table_html(), 'boardState' => json_decode($board_instance->get_board_state_json())]);
         $_SESSION['game_data'] = $board_instance;
         die();
@@ -166,13 +178,28 @@ class TicTacToeReqHandler {
         die();
     }
 
+    public function pick_random_cell($board_instance) {
+        $empty_cells = [];
+        foreach($board_instance->get_board_state() as $idx => $cell) {
+            if($cell == ''){
+                array_push($empty_cells, $idx);
+            }
+        }
+        return $empty_cells[array_rand($empty_cells)];
+    }
+
     public function handle_move() {
+
         if( !isset($_REQUEST['requested_cell']) ) {
             echo ['error' => 'No cell requested'];
             die();
         }
 
         $board_instance = $_SESSION['game_data'];
+
+        if($board_instance->current_player->is_bot()){
+            $_REQUEST['requested_cell'] = $this->pick_random_cell($board_instance);
+        }
 
         if( !$board_instance->is_valid_move() ) {
             echo json_encode(['error' => 'Invalid move']);
